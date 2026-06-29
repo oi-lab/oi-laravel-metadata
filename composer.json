@@ -1,0 +1,87 @@
+{
+    "name": "oi-lab/oi-laravel-metadata",
+    "description": "Polymorphic SEO metadata and Open Graph management for Laravel applications",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "metadata",
+        "meta-tags",
+        "opengraph",
+        "open-graph",
+        "seo",
+        "polymorphic"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "OI Lab",
+            "email": "olivier@olacombe.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^11.0|^12.0|^13.0",
+        "illuminate/database": "^11.0|^12.0|^13.0",
+        "illuminate/http": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "spatie/laravel-data": "^4.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.29",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^3.0|^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0|^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OiLab\\OiLaravelMetadata\\": "src/",
+            "OiLab\\OiLaravelMetadata\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "OiLab\\OiLaravelMetadata\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "OiLab\\OiLaravelMetadata\\OiLaravelMetadataServiceProvider"
+            ],
+            "aliases": {
+                "Meta": "OiLab\\OiLaravelMetadata\\Facades\\Meta",
+                "Og": "OiLab\\OiLaravelMetadata\\Facades\\Og"
+            }
+        },
+        "oi-lab": {
+            "skills": [
+                {
+                    "name": "oilab-laravel-metadata",
+                    "description": "Polymorphic SEO metadata and Open Graph for Eloquent models",
+                    "path": "resources/stubs/ai-skill.md",
+                    "rules": "resources/stubs/claude-rules.md",
+                    "section": "oi-lab/oi-laravel-metadata rules"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "test": [
+            "@php vendor/bin/pest"
+        ],
+        "sync-ai-skills": [
+            "@php scripts/sync-ai-skills.php"
+        ],
+        "post-autoload-dump": [
+            "@php scripts/sync-ai-skills.php"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

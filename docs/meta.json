@@ -1,0 +1,9 @@
+{
+    "type": "package",
+    "name": "oi-lab/oi-laravel-metadata",
+    "title": "OI Laravel Metadata",
+    "description": "Polymorphic SEO metadata and Open Graph for Laravel",
+    "slug": "oi-laravel-metadata",
+    "version": "1.0.0",
+    "order": 35
+}

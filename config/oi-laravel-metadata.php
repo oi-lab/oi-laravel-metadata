@@ -1,0 +1,66 @@
+<?php
+
+use OiLab\OiLaravelMetadata\Models\Metadata;
+use OiLab\OiLaravelMetadata\Models\OpenGraph;
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Models
+    |--------------------------------------------------------------------------
+    |
+    | The model classes used by the package. Override these with your own
+    | classes (extending the package base models) to customize behavior. Always
+    | resolve them through the OiMetadata helper so overrides keep working.
+    |
+    */
+    'models' => [
+        'metadata' => Metadata::class,
+        'open_graph' => OpenGraph::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Metadata Values
+    |--------------------------------------------------------------------------
+    |
+    | Fallback values used by MetaService when a model has no metadata record
+    | or leaves a field empty. The `robots` and `googlebot` defaults are also
+    | resolved from the host application Setting model when available.
+    |
+    */
+    'defaults' => [
+        'language' => 'fr',
+        'robots' => 'index, follow',
+        'revisit_after' => '7 days',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Setting Model Integration
+    |--------------------------------------------------------------------------
+    |
+    | When the host application exposes a key/value Setting model, the package
+    | can seed default metadata settings into it and resolve global values
+    | (Open Graph locale, site name, Facebook App ID, verification tokens...)
+    | from it. The installer and resolver no-op gracefully when the model is
+    | absent, falling back to the `defaults` map below.
+    |
+    */
+    'settings' => [
+        'model' => 'App\\Models\\Setting',
+        'key_column' => 'key',
+        'value_column' => 'value',
+
+        'defaults' => [
+            'METADATA_FACEBOOK_APP_ID' => '',
+            'METADATA_GOOGLE_SITE_VERIFICATION' => '',
+            'METADATA_GOOGLE_BOT' => '',
+            'METADATA_GOOGLE' => '',
+            'METADATA_ROBOTS' => 'index, follow',
+            'METADATA_OG_LOCALE' => 'fr',
+            'METADATA_OG_SITE_NAME' => '',
+            'METADATA_OG_TYPE' => 'website',
+        ],
+    ],
+];
