@@ -1,4 +1,6 @@
-# OI Laravel Metadata BETA
+<img src="./assets/github-preview.png" alt="OI Laravel TypeScript Generator" width="100%" />
+
+# OI Laravel Metadata
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/oi-lab/oi-laravel-metadata.svg)](https://packagist.org/packages/oi-lab/oi-laravel-metadata)
 [![Total Downloads](https://img.shields.io/packagist/dt/oi-lab/oi-laravel-metadata.svg)](https://packagist.org/packages/oi-lab/oi-laravel-metadata)
