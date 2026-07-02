@@ -2,17 +2,15 @@
 
 namespace OiLab\OiLaravelMetadata\Support;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
-use Throwable;
+use OiLab\OiLaravelMetadata\Contracts\SettingStore;
 
 /**
  * SettingResolver
  *
- * Reads global metadata values from the host application's key/value Setting
- * model when it is available, gracefully falling back to the package config
- * defaults otherwise. This keeps the package decoupled from any specific
- * settings implementation.
+ * Reads global metadata values through the active {@see SettingStore},
+ * gracefully falling back to the package config defaults otherwise. Keeps the
+ * package decoupled from any specific settings implementation while preferring
+ * `oi-lab/oi-laravel-settings` when it is installed.
  */
 class SettingResolver
 {
@@ -28,68 +26,19 @@ class SettingResolver
      */
     public function get(string $key, ?string $default = null): ?string
     {
-        if (array_key_exists($key, $this->cache)) {
-            return $this->cache[$key] ?? $default ?? $this->configDefault($key);
+        if (! array_key_exists($key, $this->cache)) {
+            $this->cache[$key] = SettingStoreFactory::make()->get($key);
         }
 
-        $value = $this->fetch($key);
-
-        $this->cache[$key] = $value;
-
-        return $value ?? $default ?? $this->configDefault($key);
+        return $this->cache[$key] ?? $default ?? $this->configDefault($key);
     }
 
     /**
-     * Determine whether the host application exposes a usable Setting model.
+     * Determine whether a usable settings store is available.
      */
     public function isAvailable(): bool
     {
-        $model = $this->modelClass();
-
-        if ($model === null || ! class_exists($model)) {
-            return false;
-        }
-
-        try {
-            return Schema::hasTable((new $model)->getTable());
-        } catch (Throwable) {
-            return false;
-        }
-    }
-
-    /**
-     * Fetch a raw value from the Setting model, or null when unavailable.
-     */
-    protected function fetch(string $key): ?string
-    {
-        if (! $this->isAvailable()) {
-            return null;
-        }
-
-        $model = $this->modelClass();
-        $keyColumn = config('oi-laravel-metadata.settings.key_column', 'key');
-        $valueColumn = config('oi-laravel-metadata.settings.value_column', 'value');
-
-        try {
-            /** @var Model|null $record */
-            $record = $model::query()->where($keyColumn, $key)->first();
-        } catch (Throwable) {
-            return null;
-        }
-
-        $value = $record?->getAttribute($valueColumn);
-
-        return $value === null ? null : (string) $value;
-    }
-
-    /**
-     * Resolve the configured Setting model class.
-     *
-     * @return class-string<Model>|null
-     */
-    protected function modelClass(): ?string
-    {
-        return config('oi-laravel-metadata.settings.model');
+        return SettingStoreFactory::make()->isAvailable();
     }
 
     /**

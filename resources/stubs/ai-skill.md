@@ -2,7 +2,8 @@
 
 This package provides polymorphic SEO **metadata** and **Open Graph** objects for Laravel applications. Any
 Eloquent model can carry at most one metadata record and one Open Graph record, rendered into `<head>` meta
-tags. Global/site-wide values are resolved from the host application `Setting` model when available.
+tags. Global/site-wide values are resolved through a pluggable `SettingStore` (auto-wired to
+`oi-lab/oi-laravel-settings` when installed) with a config-default fallback.
 
 ## Core Concepts
 
@@ -73,9 +74,15 @@ $page->syncOpenGraph(new OpenGraphData(type: 'article'));
 `robots`, `googlebot`, plus site verification tags from settings (`google-site-verification`, `google`).
 `Og::render()` emits `og:*` plus `og:locale`, `og:site_name` and `fb:app_id` resolved from settings.
 
-## Setting Model Integration
+## Setting Integration
 
-When the host app exposes a key/value `Setting` model, seed defaults with:
+Settings are read/written through a pluggable `OiLab\OiLaravelMetadata\Contracts\SettingStore`.
+Resolution order: explicit `config('oi-laravel-metadata.settings.store')` class →
+`oi-lab/oi-laravel-settings` adapter when installed (recommended, auto-wired, listed under
+`suggest`) → generic key/value `Setting` model (`settings.model`) → config defaults.
+`SettingResolver` / `SettingsInstaller` are thin façades over the resolved store.
+
+Seed defaults with:
 
 ```bash
 php artisan metadata:install-settings
@@ -84,8 +91,8 @@ php artisan metadata:install-settings
 Seeded keys (idempotent, existing keys untouched): `METADATA_FACEBOOK_APP_ID`,
 `METADATA_GOOGLE_SITE_VERIFICATION`, `METADATA_GOOGLE_BOT`, `METADATA_GOOGLE`,
 `METADATA_ROBOTS` (`index, follow`), `METADATA_OG_LOCALE` (`fr`), `METADATA_OG_SITE_NAME`,
-`METADATA_OG_TYPE` (`website`). The model class and key/value columns are configurable under
-`config/oi-laravel-metadata.php` → `settings`. When no Setting model is present, the resolver falls back to
+`METADATA_OG_TYPE` (`website`). The generic-model class and key/value columns are configurable under
+`config/oi-laravel-metadata.php` → `settings`. When no store is available, the resolver falls back to
 the config defaults.
 
 ## Validation

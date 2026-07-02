@@ -9,7 +9,7 @@
 
 A Laravel package to attach polymorphic **SEO metadata** and **Open Graph** data to **any** Eloquent model —
 one record of each per parent — with spatie/laravel-data DTOs, dedicated services, validation rules, head-tag
-rendering, and host-application `Setting` model integration.
+rendering, and pluggable settings integration (auto-wired to `oi-lab/oi-laravel-settings`).
 
 ## Features
 
@@ -19,7 +19,7 @@ rendering, and host-application `Setting` model integration.
 - **Services & Facades**: `MetaService` / `OgService` (`Meta` / `Og`) to read, write, and render
 - **Head-tag Rendering**: `Meta::render($model)` and `Og::render($model)` emit escaped `<meta>` tags
 - **Validation**: `MetadataRequest` / `OpenGraphRequest` form requests, plus `IsoLanguageRule` & `RobotsRule`
-- **Setting Integration**: seeds and resolves site-wide values from a host `Setting` model when present
+- **Setting Integration**: seeds and resolves site-wide values through a pluggable `SettingStore` (auto-wired to `oi-lab/oi-laravel-settings`, config-default fallback)
 
 ## The Objects
 
@@ -159,13 +159,18 @@ public function update(MetadataRequest $request, Page $page)
 
 The `IsoLanguageRule` and `RobotsRule` rules are reusable on their own.
 
-## Setting Model Integration
+## Setting Integration
 
-If your application has a key/value `Setting` model, seed the package defaults:
+Seed the package defaults into your settings backend:
 
 ```bash
 php artisan metadata:install-settings
 ```
+
+Settings are read and written through a pluggable `SettingStore`. Install the
+recommended [`oi-lab/oi-laravel-settings`](https://packagist.org/packages/oi-lab/oi-laravel-settings)
+(listed under `suggest`) and it is wired automatically. Without it, the package
+falls back to a generic key/value `Setting` model or no-ops gracefully.
 
 This inserts the following keys (idempotently — existing keys are never overwritten):
 
@@ -180,10 +185,12 @@ This inserts the following keys (idempotently — existing keys are never overwr
 | `METADATA_OG_SITE_NAME` | `""` |
 | `METADATA_OG_TYPE` | `website` |
 
-Configure the model class and columns in `config/oi-laravel-metadata.php`:
+Configure the backend in `config/oi-laravel-metadata.php`. Leave `store` null to auto-detect; the
+`model` / column keys drive the generic key/value fallback:
 
 ```php
 'settings' => [
+    'store' => null, // class-string to force a specific SettingStore, else auto-detect
     'model' => App\Models\Setting::class,
     'key_column' => 'key',
     'value_column' => 'value',
@@ -191,8 +198,8 @@ Configure the model class and columns in `config/oi-laravel-metadata.php`:
 ],
 ```
 
-When no `Setting` model is present, the resolver and installer no-op gracefully and fall back to config
-defaults.
+When no store is present, the resolver and installer no-op gracefully and fall back to config
+defaults. See [Advanced → Setting Integration](docs/advanced/settings-integration.md).
 
 ## Overriding Models
 

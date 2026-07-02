@@ -2,51 +2,33 @@
 
 namespace OiLab\OiLaravelMetadata\Support;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
-use Throwable;
+use OiLab\OiLaravelMetadata\Contracts\SettingStore;
 
 /**
  * SettingsInstaller
  *
- * Seeds the package's default metadata settings into the host application's
- * key/value Setting model. The operation is idempotent: existing keys are left
- * untouched, and the installer no-ops gracefully when no Setting model exists.
+ * Seeds the package's default metadata settings through the active
+ * {@see SettingStore}. Idempotent: existing
+ * keys are never overwritten and the installer no-ops gracefully when no
+ * settings store is available.
  */
 class SettingsInstaller
 {
-    /**
-     * Whether the host application exposes a usable Setting model.
-     */
     public function canInstall(): bool
     {
-        $model = $this->modelClass();
-
-        if ($model === null || ! class_exists($model)) {
-            return false;
-        }
-
-        try {
-            return Schema::hasTable((new $model)->getTable());
-        } catch (Throwable) {
-            return false;
-        }
+        return SettingStoreFactory::make()->isAvailable();
     }
 
     /**
-     * Seed any missing default settings.
-     *
-     * @return list<string> The keys that were created during this run.
+     * @return list<string> The keys created during this run.
      */
     public function install(): array
     {
-        if (! $this->canInstall()) {
+        $store = SettingStoreFactory::make();
+
+        if (! $store->isAvailable()) {
             return [];
         }
-
-        $model = $this->modelClass();
-        $keyColumn = config('oi-laravel-metadata.settings.key_column', 'key');
-        $valueColumn = config('oi-laravel-metadata.settings.value_column', 'value');
 
         /** @var array<string, string> $defaults */
         $defaults = config('oi-laravel-metadata.settings.defaults', []);
@@ -54,31 +36,15 @@ class SettingsInstaller
         $created = [];
 
         foreach ($defaults as $key => $value) {
-            /** @var Model|null $existing */
-            $existing = $model::query()->where($keyColumn, $key)->first();
-
-            if ($existing !== null) {
+            if ($store->has($key)) {
                 continue;
             }
 
-            $model::query()->create([
-                $keyColumn => $key,
-                $valueColumn => $value,
-            ]);
+            $store->set($key, (string) $value);
 
             $created[] = $key;
         }
 
         return $created;
-    }
-
-    /**
-     * Resolve the configured Setting model class.
-     *
-     * @return class-string<Model>|null
-     */
-    protected function modelClass(): ?string
-    {
-        return config('oi-laravel-metadata.settings.model');
     }
 }

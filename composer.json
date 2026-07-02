@@ -26,6 +26,9 @@
         "illuminate/support": "^11.0|^12.0|^13.0",
         "spatie/laravel-data": "^4.0"
     },
+    "suggest": {
+        "oi-lab/oi-laravel-settings": "Recommended settings backend: scoped, typed values automatically wired for metadata settings."
+    },
     "require-dev": {
         "laravel/pint": "^1.29",
         "orchestra/testbench": "^9.0|^10.0|^11.0",

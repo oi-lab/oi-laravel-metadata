@@ -1,5 +1,6 @@
 <?php
 
+use OiLab\OiLaravelMetadata\Contracts\SettingStore;
 use OiLab\OiLaravelMetadata\Support\SettingResolver;
 use OiLab\OiLaravelMetadata\Support\SettingsInstaller;
 use OiLab\OiLaravelMetadata\Tests\Fixtures\Setting;
@@ -56,4 +57,42 @@ it('reports it cannot install without a Setting model', function () {
 
     expect($installer->canInstall())->toBeFalse()
         ->and($installer->install())->toBe([]);
+});
+
+it('routes reads and writes through an explicitly configured store', function () {
+    $store = new class implements SettingStore
+    {
+        /** @var array<string, string> */
+        public array $values = [];
+
+        public function isAvailable(): bool
+        {
+            return true;
+        }
+
+        public function get(string $key, ?string $default = null): ?string
+        {
+            return $this->values[$key] ?? $default;
+        }
+
+        public function has(string $key): bool
+        {
+            return array_key_exists($key, $this->values);
+        }
+
+        public function set(string $key, string $value): void
+        {
+            $this->values[$key] = $value;
+        }
+    };
+
+    app()->instance('custom.store', $store);
+    config()->set('oi-laravel-metadata.settings.store', 'custom.store');
+
+    $created = app(SettingsInstaller::class)->install();
+
+    expect($created)->toContain('METADATA_ROBOTS')
+        ->and($store->values['METADATA_ROBOTS'])->toBe('index, follow')
+        ->and(app(SettingResolver::class)->get('METADATA_ROBOTS'))->toBe('index, follow')
+        ->and(Setting::count())->toBe(0);
 });
