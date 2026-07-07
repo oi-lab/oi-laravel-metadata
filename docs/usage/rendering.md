@@ -7,24 +7,67 @@ order: 4
 
 # Rendering Head Tags
 
-Both services render escaped HTML `<meta>` tags ready to drop into your `<head>`. Empty values are omitted, and
-every value is passed through `e()`.
+The package renders escaped HTML `<meta>` tags and JSON-LD `<script>` blocks ready to drop into your `<head>`.
+Empty values are omitted, and every meta value is passed through `e()`.
 
-## In a Blade layout
+## Blade directives
+
+The simplest way is the three Blade directives — `@meta`, `@og`, and `@jsonLd`:
 
 ```blade
 <head>
     <title>{{ $page->metadata?->title ?? config('app.name') }}</title>
 
-    {!! Meta::render($page) !!}
-    {!! Og::render($page) !!}
+    @meta($page)
+    @og($page)
     @jsonLd($page)
 </head>
 ```
 
-`Meta::render()` and `Og::render()` return an `Illuminate\Support\HtmlString`, so `{!! !!}` outputs the markup
-without double-escaping. The `@jsonLd` directive renders JSON-LD `<script type="application/ld+json">` blocks —
-see [Managing JSON-LD](json-ld.md) for the full structured-data workflow.
+Each accepts a model, a matching DTO, or (for `@jsonLd`) a `Schema` builder or raw array.
+
+### Rendering without passing `$page`
+
+Set a shared **SEO subject** once and the directives render it with no argument. Set it in a controller
+before returning the view, or in a view composer:
+
+```php
+use OiLab\OiLaravelMetadata\Facades\Seo;
+
+public function show(Page $page)
+{
+    Seo::for($page);
+
+    return view('pages.show', compact('page'));
+}
+```
+
+```blade
+<head>
+    @meta
+    @og
+    @jsonLd
+</head>
+```
+
+When no subject is set explicitly, it is **auto-resolved from the current route's model binding**: on a
+`Route::get('/pages/{page}', ...)` route, the last bound model exposing the relevant relation is used — so the
+directives work with zero setup. An explicit argument (`@meta($other)`) always overrides both. Disable
+auto-resolution with `config('oi-laravel-metadata.auto_resolve_subject')`.
+
+Each directive still renders site-wide values (verification tags, `og:locale`, …) even without a subject.
+
+## From the facades
+
+The facades return an `Illuminate\Support\HtmlString`, so `{!! !!}` outputs the markup without
+double-escaping:
+
+```blade
+{!! Meta::render($page) !!}
+{!! Og::render($page) !!}
+```
+
+See [Managing JSON-LD](json-ld.md) for the full structured-data workflow.
 
 ## What `Meta::render()` outputs
 
@@ -91,4 +134,5 @@ When a model uses the traits, you can render straight off the instance:
 ```php
 $page->renderMetadata();  // string of <meta name="..."> tags
 $page->renderOpenGraph(); // string of <meta property="og:..."> tags
+$page->renderJsonLd();    // string of <script type="application/ld+json"> blocks
 ```

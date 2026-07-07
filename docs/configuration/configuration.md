@@ -45,6 +45,20 @@ Options for rendering JSON-LD `<script type="application/ld+json">` blocks. See
 | `context` | `https://schema.org` | The `@context` injected into each top-level graph that does not declare its own |
 | `pretty` | `false` | Pretty-print the JSON (useful while debugging; keep it compact in production) |
 
+## Automatic subject resolution
+
+Controls whether the `@meta`, `@og`, and `@jsonLd` Blade directives — called with no argument — fall back to
+the current route's bound model when no subject was set via `Seo::for($model)`. See
+[Rendering tags](../usage/rendering.md#rendering-without-passing-page).
+
+```php
+'auto_resolve_subject' => true,
+```
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `auto_resolve_subject` | `true` | Auto-resolve the directives' subject from the last route-bound model exposing the relevant relation |
+
 ## Defaults
 
 Fallback values used by `MetaService` when a model has no record or leaves a field empty.

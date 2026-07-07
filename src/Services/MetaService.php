@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 use OiLab\OiLaravelMetadata\Data\MetadataData;
 use OiLab\OiLaravelMetadata\Models\Metadata;
+use OiLab\OiLaravelMetadata\Support\SeoContext;
 use OiLab\OiLaravelMetadata\Support\SettingResolver;
 
 /**
@@ -16,7 +17,10 @@ use OiLab\OiLaravelMetadata\Support\SettingResolver;
  */
 class MetaService
 {
-    public function __construct(protected SettingResolver $settings) {}
+    public function __construct(
+        protected SettingResolver $settings,
+        protected SeoContext $context,
+    ) {}
 
     /**
      * Get the metadata record attached to a model, if any.
@@ -69,6 +73,8 @@ class MetaService
      */
     public function render(Model|MetadataData|null $source = null): HtmlString
     {
+        $source ??= $this->context->subject('metadata');
+
         $data = $source instanceof MetadataData
             ? $source
             : ($source instanceof Model ? $this->toData($source) : new MetadataData);

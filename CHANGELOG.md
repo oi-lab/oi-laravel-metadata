@@ -2,6 +2,15 @@
 
 All notable changes to `oi-laravel-metadata` will be documented in this file.
 
+## 1.2.0 - 2026-07-07
+
+### Added
+
+- `@meta` and `@og` Blade directives, mirroring `@jsonLd`, each taking an optional source.
+- Shared SEO subject via `SeoContext` (facade `Seo`): set it once with `Seo::for($model)` and the three
+  directives render it with no argument; falls back to the current route's bound model.
+- `auto_resolve_subject` config flag (default `true`) toggling the route-model fallback.
+
 ## 1.1.0 - 2026-07-07
 
 ### Added

@@ -47,6 +47,8 @@ $page->jsonLd;     // JsonLd|null
 | `Schema` | Fluent Schema.org node builder for JSON-LD |
 | `MetaService` / `OgService` / `JsonLdService` | Services that read, write (`updateOrCreate`), and render |
 | `Meta` / `Og` / `JsonLd` | Facades over the three services |
+| `@meta` / `@og` / `@jsonLd` | Blade directives that render a source (optional — see below) |
+| `Seo` / `SeoContext` | Shared "current subject" so the directives render with no argument |
 | `OiMetadata` | Resolver for the configurable model classes |
 
 ## Where to go next

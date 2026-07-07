@@ -7,6 +7,7 @@ use Illuminate\Support\HtmlString;
 use OiLab\OiLaravelMetadata\Data\OpenGraphData;
 use OiLab\OiLaravelMetadata\Data\OpenGraphImageData;
 use OiLab\OiLaravelMetadata\Models\OpenGraph;
+use OiLab\OiLaravelMetadata\Support\SeoContext;
 use OiLab\OiLaravelMetadata\Support\SettingResolver;
 
 /**
@@ -18,7 +19,10 @@ use OiLab\OiLaravelMetadata\Support\SettingResolver;
  */
 class OgService
 {
-    public function __construct(protected SettingResolver $settings) {}
+    public function __construct(
+        protected SettingResolver $settings,
+        protected SeoContext $context,
+    ) {}
 
     /**
      * Get the Open Graph record attached to a model, if any.
@@ -73,6 +77,8 @@ class OgService
      */
     public function render(Model|OpenGraphData|null $source = null): HtmlString
     {
+        $source ??= $this->context->subject('openGraph');
+
         $data = $source instanceof OpenGraphData
             ? $source
             : ($source instanceof Model ? $this->toData($source) : new OpenGraphData);

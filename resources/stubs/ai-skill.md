@@ -22,6 +22,9 @@ Global/site-wide values are resolved through a pluggable `SettingStore` (auto-wi
   property, nested nodes resolve recursively.
 - **Services** — `MetaService`, `OgService`, and `JsonLdService` (facades `Meta`, `Og`, `JsonLd`) read, write,
   and render.
+- **Blade directives** — `@meta`, `@og`, `@jsonLd`, each taking an optional source.
+- **Shared subject** — `SeoContext` (facade `Seo`) holds the current SEO model so the directives render with no
+  argument; falls back to the route-bound model.
 - **Traits** — `HasMetadata`, `HasOpenGraph`, `HasJsonLd`, and the combined `HasMeta`.
 
 ## Adding Metadata & Open Graph to a Model
@@ -104,18 +107,41 @@ for `@`-prefixed keywords.
 
 ## Rendering `<head>` Tags
 
+Use the Blade directives `@meta`, `@og`, `@jsonLd` (or the facade `render()` methods):
+
 ```blade
-{!! Meta::render($page) !!}
-{!! Og::render($page) !!}
+@meta($page)
+@og($page)
 @jsonLd($page)
 ```
 
-`Meta::render()` emits `description`, `keywords`, `author`, `copyright`, `language`, `revisit-after`,
-`robots`, `googlebot`, plus site verification tags from settings (`google-site-verification`, `google`).
-`Og::render()` emits `og:*` plus `og:locale`, `og:site_name` and `fb:app_id` resolved from settings.
-`@jsonLd($source)` (or `JsonLd::render($source)`) emits one `<script type="application/ld+json">` block per
-graph — `$source` may be a model, a `JsonLdData`, a `Schema`, or a raw array. JSON is hex-escaped so it is safe
-inside `<script>`, and a top-level `@context` (`https://schema.org`) is injected when absent.
+`@meta` (or `Meta::render()`) emits `description`, `keywords`, `author`, `copyright`, `language`,
+`revisit-after`, `robots`, `googlebot`, plus site verification tags from settings (`google-site-verification`,
+`google`). `@og` (or `Og::render()`) emits `og:*` plus `og:locale`, `og:site_name` and `fb:app_id` resolved
+from settings. `@jsonLd($source)` (or `JsonLd::render($source)`) emits one `<script type="application/ld+json">`
+block per graph — `$source` may be a model, a `JsonLdData`, a `Schema`, or a raw array. JSON is hex-escaped so
+it is safe inside `<script>`, and a top-level `@context` (`https://schema.org`) is injected when absent.
+
+### Rendering without an argument
+
+The three directives take an **optional** source. Called with no argument they render the shared SEO subject:
+
+```php
+use OiLab\OiLaravelMetadata\Facades\Seo;
+
+Seo::for($page); // set once in a controller or view composer
+```
+
+```blade
+@meta
+@og
+@jsonLd
+```
+
+When no subject is set explicitly, it is auto-resolved from the current route's model binding (the last bound
+model exposing the relevant relation). An explicit argument (`@meta($other)`) always overrides. Disable with
+`config('oi-laravel-metadata.auto_resolve_subject')`. The shared subject lives in the `SeoContext` singleton
+(facade `Seo`).
 
 ## Setting Integration
 

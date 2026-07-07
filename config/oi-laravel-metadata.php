@@ -39,6 +39,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Automatic Subject Resolution
+    |--------------------------------------------------------------------------
+    |
+    | When true, the `@meta`, `@og`, and `@jsonLd` Blade directives (called with
+    | no argument) fall back to the last route-bound Eloquent model exposing the
+    | relevant relation. Set a subject explicitly with `Seo::for($model)` to
+    | override it, or disable this to require an explicit subject everywhere.
+    |
+    */
+    'auto_resolve_subject' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Metadata Values
     |--------------------------------------------------------------------------
     |

@@ -8,6 +8,7 @@ use Illuminate\Support\HtmlString;
 use OiLab\OiLaravelMetadata\Data\JsonLdData;
 use OiLab\OiLaravelMetadata\Models\JsonLd;
 use OiLab\OiLaravelMetadata\Support\Schema;
+use OiLab\OiLaravelMetadata\Support\SeoContext;
 
 /**
  * JsonLdService
@@ -20,6 +21,8 @@ use OiLab\OiLaravelMetadata\Support\Schema;
  */
 class JsonLdService
 {
+    public function __construct(protected SeoContext $context) {}
+
     /**
      * Get the JSON-LD record attached to a model, if any.
      */
@@ -60,6 +63,8 @@ class JsonLdService
      */
     public function render(Model|JsonLdData|Schema|array|null $source = null): HtmlString
     {
+        $source ??= $this->context->subject('jsonLd');
+
         $scripts = [];
 
         foreach ($this->resolveGraphs($source) as $graph) {

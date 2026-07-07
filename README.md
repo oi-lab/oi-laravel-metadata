@@ -19,8 +19,9 @@ validation rules, head-tag rendering, a `@jsonLd` Blade directive, and pluggable
 - **DTOs**: typed `MetadataData`, `OpenGraphData`, `OpenGraphImageData`, `JsonLdData` (spatie/laravel-data)
 - **Fluent Schema.org builder**: compose any JSON-LD node with `Schema::article()->headline(...)->author(...)`
 - **Services & Facades**: `MetaService` / `OgService` / `JsonLdService` (`Meta` / `Og` / `JsonLd`) to read, write, and render
-- **Head-tag Rendering**: `Meta::render($model)` and `Og::render($model)` emit escaped `<meta>` tags
-- **JSON-LD Rendering**: `JsonLd::render($model)` and the `@jsonLd($model)` Blade directive emit `<script type="application/ld+json">` blocks
+- **Blade directives**: `@meta`, `@og`, `@jsonLd` — render a passed model, a shared `Seo::for($model)` subject, or the current route model automatically
+- **Head-tag Rendering**: `@meta` / `@og` (or `Meta::render($model)` / `Og::render($model)`) emit escaped `<meta>` tags
+- **JSON-LD Rendering**: `@jsonLd` (or `JsonLd::render($model)`) emits `<script type="application/ld+json">` blocks
 - **Validation**: `MetadataRequest` / `OpenGraphRequest` form requests, plus `IsoLanguageRule` & `RobotsRule`
 - **Setting Integration**: seeds and resolves site-wide values through a pluggable `SettingStore` (auto-wired to `oi-lab/oi-laravel-settings`, config-default fallback)
 
@@ -145,12 +146,41 @@ The trait helpers `$page->syncMetadata(...)` and `$page->syncOpenGraph(...)` do 
 
 ### Render `<head>` Tags
 
+Use the Blade directives — `@meta`, `@og`, and `@jsonLd`:
+
 ```blade
 <head>
-    {!! Meta::render($page) !!}
-    {!! Og::render($page) !!}
+    @meta($page)
+    @og($page)
+    @jsonLd($page)
 </head>
 ```
+
+Or render straight from the facades (`{!! Meta::render($page) !!}` / `{!! Og::render($page) !!}`).
+
+#### Without passing `$page`
+
+Set a shared SEO subject once and the directives render it with **no argument** — set it in a controller or a
+view composer:
+
+```php
+use OiLab\OiLaravelMetadata\Facades\Seo;
+
+Seo::for($page); // shared by @meta, @og, and @jsonLd
+```
+
+```blade
+<head>
+    @meta
+    @og
+    @jsonLd
+</head>
+```
+
+When nothing is set explicitly, the subject is **auto-resolved from the current route's model binding** — so on
+a `Route::get('/pages/{page}', ...)` route the directives just work with zero setup. An explicit argument
+(`@meta($other)`) always wins, and auto-resolution can be turned off with the `auto_resolve_subject` config
+flag.
 
 `Meta::render()` outputs `description`, `keywords`, `author`, `copyright`, `language`, `revisit-after`,
 `robots`, and `googlebot` tags, plus `google-site-verification` / `google` verification tags resolved from
@@ -192,8 +222,8 @@ Render one `<script type="application/ld+json">` block per graph with the `@json
 
 ```blade
 <head>
-    {!! Meta::render($page) !!}
-    {!! Og::render($page) !!}
+    @meta($page)
+    @og($page)
     @jsonLd($page)
 </head>
 ```

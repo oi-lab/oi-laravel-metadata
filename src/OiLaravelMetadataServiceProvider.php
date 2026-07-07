@@ -9,6 +9,7 @@ use OiLab\OiLaravelMetadata\Console\Commands\InstallSettingsCommand;
 use OiLab\OiLaravelMetadata\Services\JsonLdService;
 use OiLab\OiLaravelMetadata\Services\MetaService;
 use OiLab\OiLaravelMetadata\Services\OgService;
+use OiLab\OiLaravelMetadata\Support\SeoContext;
 use OiLab\OiLaravelMetadata\Support\SettingResolver;
 use OiLab\OiLaravelMetadata\Support\SettingsInstaller;
 
@@ -18,6 +19,7 @@ class OiLaravelMetadataServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/oi-laravel-metadata.php', 'oi-laravel-metadata');
 
+        $this->app->singleton(SeoContext::class);
         $this->app->singleton(SettingResolver::class);
         $this->app->singleton(SettingsInstaller::class);
         $this->app->singleton(MetaService::class);
@@ -54,17 +56,21 @@ class OiLaravelMetadataServiceProvider extends ServiceProvider
     /**
      * Register the package Blade directives.
      *
-     * `@jsonLd($source)` renders the JSON-LD structured data of a model, a
-     * JsonLdData object, a Schema builder, or a raw array as
-     * `<script type="application/ld+json">` blocks. Called with no argument it
-     * renders nothing.
+     * `@meta`, `@og`, and `@jsonLd` render the metadata, Open Graph, and JSON-LD
+     * of a source. The source is optional: with no argument each directive falls
+     * back to the shared SEO subject (`Seo::for($model)`), itself auto-resolved
+     * from the current route's model binding when nothing is set explicitly.
      */
     protected function registerBladeDirectives(): void
     {
-        Blade::directive('jsonLd', function (string $expression): string {
-            $argument = trim($expression) === '' ? 'null' : $expression;
+        $render = static fn (string $service): callable => static function (string $expression) use ($service): string {
+            $argument = trim($expression);
 
-            return "<?php echo app(\OiLab\OiLaravelMetadata\Services\JsonLdService::class)->render({$argument})->toHtml(); ?>";
-        });
+            return "<?php echo app({$service}::class)->render({$argument})->toHtml(); ?>";
+        };
+
+        Blade::directive('meta', $render('\OiLab\OiLaravelMetadata\Services\MetaService'));
+        Blade::directive('og', $render('\OiLab\OiLaravelMetadata\Services\OgService'));
+        Blade::directive('jsonLd', $render('\OiLab\OiLaravelMetadata\Services\JsonLdService'));
     }
 }

@@ -100,6 +100,9 @@ Each graph becomes its own script block. A top-level `@context` (`https://schema
 when the graph does not declare one, and the JSON is encoded with `JSON_HEX_TAG | JSON_HEX_AMP` so `<`, `>`,
 and `&` cannot break out of the `<script>` tag.
 
+Called with no argument, `@jsonLd` renders the shared SEO subject (`Seo::for($model)`) or the current
+route-bound model — see [Rendering tags](rendering.md#rendering-without-passing-page).
+
 Render ad-hoc, non-persisted structured data straight from a builder:
 
 ```blade
