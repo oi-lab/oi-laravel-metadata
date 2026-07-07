@@ -24,8 +24,26 @@ The model classes used by the package. Override them with your own subclasses â€
 'models' => [
     'metadata' => OiLab\OiLaravelMetadata\Models\Metadata::class,
     'open_graph' => OiLab\OiLaravelMetadata\Models\OpenGraph::class,
+    'json_ld' => OiLab\OiLaravelMetadata\Models\JsonLd::class,
 ],
 ```
+
+## JSON-LD
+
+Options for rendering JSON-LD `<script type="application/ld+json">` blocks. See
+[Managing JSON-LD](../usage/json-ld.md).
+
+```php
+'json_ld' => [
+    'context' => 'https://schema.org',
+    'pretty' => false,
+],
+```
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `context` | `https://schema.org` | The `@context` injected into each top-level graph that does not declare its own |
+| `pretty` | `false` | Pretty-print the JSON (useful while debugging; keep it compact in production) |
 
 ## Defaults
 

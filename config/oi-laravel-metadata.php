@@ -1,5 +1,6 @@
 <?php
 
+use OiLab\OiLaravelMetadata\Models\JsonLd;
 use OiLab\OiLaravelMetadata\Models\Metadata;
 use OiLab\OiLaravelMetadata\Models\OpenGraph;
 
@@ -17,6 +18,23 @@ return [
     'models' => [
         'metadata' => Metadata::class,
         'open_graph' => OpenGraph::class,
+        'json_ld' => JsonLd::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | JSON-LD Structured Data
+    |--------------------------------------------------------------------------
+    |
+    | Options for rendering JSON-LD `<script type="application/ld+json">` blocks.
+    | `context` is the default `@context` injected into each top-level graph
+    | when it does not define its own. Enable `pretty` to pretty-print the JSON
+    | (useful while debugging; keep it compact in production).
+    |
+    */
+    'json_ld' => [
+        'context' => 'https://schema.org',
+        'pretty' => false,
     ],
 
     /*

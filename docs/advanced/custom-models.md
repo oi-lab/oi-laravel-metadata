@@ -55,6 +55,26 @@ class OpenGraph extends BaseOpenGraph
 ],
 ```
 
+## Overriding the JsonLd model
+
+```php
+namespace App\Models;
+
+use OiLab\OiLaravelMetadata\Models\JsonLd as BaseJsonLd;
+
+class JsonLd extends BaseJsonLd
+{
+    // your customizations
+}
+```
+
+```php
+// config/oi-laravel-metadata.php
+'models' => [
+    'json_ld' => App\Models\JsonLd::class,
+],
+```
+
 ## The resolver
 
 ```php
@@ -62,6 +82,7 @@ use OiLab\OiLaravelMetadata\OiMetadata;
 
 OiMetadata::metadataModel();  // configured Metadata class
 OiMetadata::openGraphModel(); // configured OpenGraph class
+OiMetadata::jsonLdModel();    // configured JsonLd class
 ```
 
 Always go through these helpers in your own code instead of referencing the concrete model classes directly, so

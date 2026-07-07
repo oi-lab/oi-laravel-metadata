@@ -18,17 +18,17 @@ registration required. It depends on `spatie/laravel-data`, which is installed a
 
 ## Run the migrations
 
-The package ships the `metadata` and `open_graphs` migrations. They are loaded automatically from the package,
-so `php artisan migrate` works even without publishing. Publish them only when you need to customize the
-schema:
+The package ships the `metadata`, `open_graphs`, and `json_ld` migrations. They are loaded automatically from
+the package, so `php artisan migrate` works even without publishing. Publish them only when you need to
+customize the schema:
 
 ```bash
 php artisan vendor:publish --tag=oi-laravel-metadata-migrations
 php artisan migrate
 ```
 
-This creates the `metadata` and `open_graphs` tables, each with a unique index on the morph columns so a parent
-never gets a second record.
+This creates the `metadata`, `open_graphs`, and `json_ld` tables, each with a unique index on the morph columns
+so a parent never gets a second record.
 
 ## Publish the configuration (optional)
 

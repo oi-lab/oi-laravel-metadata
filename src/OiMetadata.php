@@ -31,4 +31,14 @@ class OiMetadata
     {
         return config('oi-laravel-metadata.models.open_graph', Models\OpenGraph::class);
     }
+
+    /**
+     * Resolve the configured JsonLd model class.
+     *
+     * @return class-string
+     */
+    public static function jsonLdModel(): string
+    {
+        return config('oi-laravel-metadata.models.json_ld', Models\JsonLd::class);
+    }
 }

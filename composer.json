@@ -53,7 +53,8 @@
             ],
             "aliases": {
                 "Meta": "OiLab\\OiLaravelMetadata\\Facades\\Meta",
-                "Og": "OiLab\\OiLaravelMetadata\\Facades\\Og"
+                "Og": "OiLab\\OiLaravelMetadata\\Facades\\Og",
+                "JsonLd": "OiLab\\OiLaravelMetadata\\Facades\\JsonLd"
             }
         },
         "oi-lab": {

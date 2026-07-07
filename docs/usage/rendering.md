@@ -18,11 +18,13 @@ every value is passed through `e()`.
 
     {!! Meta::render($page) !!}
     {!! Og::render($page) !!}
+    @jsonLd($page)
 </head>
 ```
 
 `Meta::render()` and `Og::render()` return an `Illuminate\Support\HtmlString`, so `{!! !!}` outputs the markup
-without double-escaping.
+without double-escaping. The `@jsonLd` directive renders JSON-LD `<script type="application/ld+json">` blocks —
+see [Managing JSON-LD](json-ld.md) for the full structured-data workflow.
 
 ## What `Meta::render()` outputs
 

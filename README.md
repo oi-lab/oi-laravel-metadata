@@ -7,17 +7,20 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/oi-lab/oi-laravel-metadata/tests.yml?label=tests)](https://github.com/oi-lab/oi-laravel-metadata/actions)
 [![License](https://img.shields.io/github/license/oi-lab/oi-laravel-metadata)](LICENSE)
 
-A Laravel package to attach polymorphic **SEO metadata** and **Open Graph** data to **any** Eloquent model —
-one record of each per parent — with spatie/laravel-data DTOs, dedicated services, validation rules, head-tag
-rendering, and pluggable settings integration (auto-wired to `oi-lab/oi-laravel-settings`).
+A Laravel package to attach polymorphic **SEO metadata**, **Open Graph**, and **JSON-LD structured data** to
+**any** Eloquent model — with spatie/laravel-data DTOs, a fluent Schema.org builder, dedicated services,
+validation rules, head-tag rendering, a `@jsonLd` Blade directive, and pluggable settings integration
+(auto-wired to `oi-lab/oi-laravel-settings`).
 
 ## Features
 
-- **Polymorphic Metadata & Open Graph**: a single `metadata` and `openGraph` record per model (`morphOne`)
-- **Traits**: opt in with `HasMetadata`, `HasOpenGraph`, or the combined `HasMeta`
-- **DTOs**: typed `MetadataData`, `OpenGraphData`, `OpenGraphImageData` (spatie/laravel-data)
-- **Services & Facades**: `MetaService` / `OgService` (`Meta` / `Og`) to read, write, and render
+- **Polymorphic Metadata, Open Graph & JSON-LD**: a single `metadata`, `openGraph`, and `jsonLd` record per model (`morphOne`)
+- **Traits**: opt in with `HasMetadata`, `HasOpenGraph`, `HasJsonLd`, or the combined `HasMeta`
+- **DTOs**: typed `MetadataData`, `OpenGraphData`, `OpenGraphImageData`, `JsonLdData` (spatie/laravel-data)
+- **Fluent Schema.org builder**: compose any JSON-LD node with `Schema::article()->headline(...)->author(...)`
+- **Services & Facades**: `MetaService` / `OgService` / `JsonLdService` (`Meta` / `Og` / `JsonLd`) to read, write, and render
 - **Head-tag Rendering**: `Meta::render($model)` and `Og::render($model)` emit escaped `<meta>` tags
+- **JSON-LD Rendering**: `JsonLd::render($model)` and the `@jsonLd($model)` Blade directive emit `<script type="application/ld+json">` blocks
 - **Validation**: `MetadataRequest` / `OpenGraphRequest` form requests, plus `IsoLanguageRule` & `RobotsRule`
 - **Setting Integration**: seeds and resolves site-wide values through a pluggable `SettingStore` (auto-wired to `oi-lab/oi-laravel-settings`, config-default fallback)
 
@@ -47,7 +50,15 @@ An **Open Graph** object:
 | `url` | string |
 | `image` | object (`url`, `width`, `height`) |
 
-Both are polymorphic, with **at most one per parent** (enforced by a unique index on the morph columns).
+A **JSON-LD** object holds a list of Schema.org graphs, each rendered as its own
+`<script type="application/ld+json">` block:
+
+| Field | Type |
+|-------|------|
+| `graphs` | array of Schema.org nodes (`Article`, `BreadcrumbList`, `Organization`, …) |
+
+All three are polymorphic, with **at most one per parent** (enforced by a unique index on the morph columns).
+The single JSON-LD record can still hold several graphs, so a page can expose multiple structured-data objects.
 
 ## Requirements
 
@@ -69,7 +80,7 @@ php artisan vendor:publish --tag=oi-laravel-metadata-config
 php artisan migrate
 ```
 
-This creates the `metadata` and `open_graphs` tables.
+This creates the `metadata`, `open_graphs`, and `json_ld` tables.
 
 ### Local Development
 
@@ -100,6 +111,7 @@ class Page extends Model
 ```php
 $page->metadata;   // MorphOne — Metadata|null
 $page->openGraph;  // MorphOne — OpenGraph|null
+$page->jsonLd;     // MorphOne — JsonLd|null
 ```
 
 ### Write Values
@@ -144,6 +156,58 @@ The trait helpers `$page->syncMetadata(...)` and `$page->syncOpenGraph(...)` do 
 `robots`, and `googlebot` tags, plus `google-site-verification` / `google` verification tags resolved from
 settings. `Og::render()` outputs the `og:*` tags plus `og:locale`, `og:site_name`, and `fb:app_id` from
 settings. Empty values are omitted; all values are HTML-escaped.
+
+### JSON-LD Structured Data
+
+Attach [Schema.org](https://schema.org) structured data (per the
+[Google structured data guidelines](https://developers.google.com/search/docs/appearance/structured-data/article))
+with the fluent `Schema` builder — any method call sets the matching schema.org property, and nested nodes are
+resolved recursively:
+
+```php
+use OiLab\OiLaravelMetadata\Data\JsonLdData;
+use OiLab\OiLaravelMetadata\Facades\JsonLd;
+use OiLab\OiLaravelMetadata\Support\Schema;
+
+JsonLd::update($page, JsonLdData::make(
+    Schema::article()
+        ->headline('About us')
+        ->datePublished('2026-07-07')
+        ->image('https://example.com/og.png')
+        ->author(Schema::person()->name('OI Lab'))
+        ->publisher(Schema::organization()->name('Acme')),
+    Schema::breadcrumbList()->itemListElement([
+        Schema::listItem()->set('position', 1)->name('Home')->item('https://example.com'),
+        Schema::listItem()->set('position', 2)->name('About')->item('https://example.com/about'),
+    ]),
+));
+```
+
+`JsonLd::update()` accepts a `JsonLdData` object, a single `Schema` builder, or raw arrays. The single record
+holds a **list of graphs**, so a page can expose several structured-data objects at once. The trait helper
+`$page->syncJsonLd(...)` does the same.
+
+Render one `<script type="application/ld+json">` block per graph with the `@jsonLd` Blade directive (or
+`JsonLd::render()`):
+
+```blade
+<head>
+    {!! Meta::render($page) !!}
+    {!! Og::render($page) !!}
+    @jsonLd($page)
+</head>
+```
+
+`@jsonLd` accepts a model, a `JsonLdData` object, a `Schema` builder, or a raw array — handy for ad-hoc,
+non-persisted structured data:
+
+```blade
+@jsonLd(\OiLab\OiLaravelMetadata\Support\Schema::webSite()->name(config('app.name'))->url(url('/')))
+```
+
+The rendered JSON is encoded with flags that keep it safe inside a `<script>` tag (`<`, `>`, and `&` are
+hex-escaped), and a top-level `@context` (`https://schema.org` by default) is injected when the graph does not
+declare its own. Enable `json_ld.pretty` in the config to pretty-print while debugging.
 
 ### Validation
 
@@ -210,6 +274,7 @@ Resolve models through `OiMetadata` so your overrides apply everywhere:
 'models' => [
     'metadata' => App\Models\Metadata::class,   // extends OiLab\OiLaravelMetadata\Models\Metadata
     'open_graph' => App\Models\OpenGraph::class, // extends OiLab\OiLaravelMetadata\Models\OpenGraph
+    'json_ld' => App\Models\JsonLd::class,       // extends OiLab\OiLaravelMetadata\Models\JsonLd
 ],
 ```
 

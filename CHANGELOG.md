@@ -2,6 +2,22 @@
 
 All notable changes to `oi-laravel-metadata` will be documented in this file.
 
+## 1.1.0 - 2026-07-07
+
+### Added
+
+- Polymorphic `JsonLd` model (one record per parent, `morphOne`) holding a list of Schema.org graphs, backed by
+  the `json_ld` table.
+- `HasJsonLd` trait (also folded into the combined `HasMeta` trait) with `jsonLd()`, `syncJsonLd()`, and
+  `renderJsonLd()` helpers.
+- Fluent `Schema` builder (`OiLab\OiLaravelMetadata\Support\Schema`) for composing Schema.org nodes, with named
+  factories for common Google types.
+- `JsonLdData` DTO and `JsonLdService` with the `JsonLd` facade for reading, writing, and rendering structured
+  data.
+- `@jsonLd` Blade directive rendering one `<script type="application/ld+json">` block per graph, with a
+  safely-injected `@context` and script-safe JSON encoding.
+- `json_ld` configuration section (`context`, `pretty`).
+
 ## 1.0.0 - 2026-06-29
 
 ### Added
